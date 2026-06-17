@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Assessment - ContosoCrafts.WebSite</title>
+<style>
+:root {
+  --bg-primary: #ffffff;
+  --bg-card: #f8f9fa;
+  --bg-page: #f0f1f3;
+  --text-primary: #24292f;
+  --text-secondary: #57606a;
+  --text-muted: #6b7280;
+  --border-color: #d0d7de;
+  --border-light: #e1e4e8;
+  --link-color: #2563eb;
+  --color-mandatory: #E3008C;
+  --color-potential: #637CEF;
+  --color-optional: #A19F9D;
+  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-family); font-size: 13px; color: var(--text-primary); background: var(--bg-primary); line-height: 1.5; margin: 0; padding: 0; }
+a { color: var(--link-color); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Page layout ───────────────────────────────────────────── */
+.main { margin: 0; padding: 24px 32px; background: var(--bg-primary); }
+.back-link { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; display: block; }
+h1 { font-weight: 600; font-size: 20px; color: var(--text-primary); margin-bottom: 20px; }
+
+/* ── Report cards (matches VS Code .vscode-report-card) ──── */
+.report-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 4px; padding: 12px; margin-bottom: 20px; }
+.report-card h2 { font-size: 14px; font-weight: 600; margin: 0; color: var(--text-primary); }
+.report-card-body { margin-top: 16px; }
+
+/* ── Component Information (two-column) ────────────────── */
+.app-info-container { display: flex; gap: 8px; flex-wrap: wrap; }
+.app-info-column { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+.app-info-row { display: flex; align-items: baseline; }
+.app-info-label { width: 136px; flex-shrink: 0; font-weight: 600; color: var(--text-primary); }
+.app-info-value { flex: 1; color: var(--text-primary); }
+
+/* ── Issue Summary (pie charts + legend) ─────────────────── */
+.cards-container { display: flex; align-items: stretch; gap: 20px; flex-wrap: wrap; }
+.issue-summary-card { flex: 2; }
+.domain-summary-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around; }
+.domain-summary-item { flex: 1; min-width: 120px; text-align: center; padding: 0 16px; border-right: 1px solid var(--border-light); }
+.domain-summary-item:last-child { border-right: none; }
+.domain-summary-item h3 { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 8px; }
+.domain-summary-item .count { font-size: 12px; color: var(--text-secondary); }
+.criticality-legend { display: flex; flex-wrap: wrap; gap: 15px; padding-top: 12px; justify-content: center; }
+.criticality-legend .legend-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); }
+.legend-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 2px; }
+
+/* ── Issue list tables ───────────────────────────────────── */
+.issue-section { margin-top: 20px; }
+.issue-section h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.issue-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; }
+.issue-table th { text-align: left; text-transform: uppercase; font-weight: 600; font-size: calc(13px * 0.875); padding: 6px 8px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); position: sticky; top: 0; z-index: 1; }
+.issue-table td { padding: 12px 8px; border-bottom: 1px solid var(--border-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.col-issue { width: 55%; }
+.col-criticality { width: 25%; }
+.col-storypoint { width: 20%; }
+
+/* ── Target dropdown ─────────────────────────────────────── */
+.target-select-container { margin: 4px 0 16px 0; display: flex; align-items: center; gap: 8px; }
+.target-select-container label { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+.target-select-container select { font-family: var(--font-family); font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer; }
+
+/* ── Filter bar ──────────────────────────────────────────── */
+.filter-bar { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 8px 0; align-items: center; }
+.multi-select { position: relative; display: inline-block; min-width: 140px; }
+.multi-select-btn { font-family: var(--font-family); font-size: 13px; padding: 4px 24px 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer; width: 100%; text-align: left; position: relative; white-space: nowrap; }
+.multi-select-btn::after { content: '\25BE'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text-secondary); }
+.multi-select-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; margin-top: 2px; }
+.multi-select.open .multi-select-dropdown { display: block; }
+.multi-select-option { display: flex; align-items: center; gap: 6px; padding: 5px 10px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+.multi-select-option:hover { background: var(--bg-secondary); }
+.multi-select-option input[type=checkbox] { margin: 0; cursor: pointer; }
+.clear-filters { font-size: 12px; color: var(--link-color); cursor: pointer; margin-left: 4px; }
+
+/* ── Criticality labels (colored square + text) ──────────── */
+.crit-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
+.crit-square { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.crit-square-mandatory { background: var(--color-mandatory); }
+.crit-square-potential { background: var(--color-potential); }
+.crit-square-optional { background: var(--color-optional); }
+
+/* ── Expandable rows ─────────────────────────────────────── */
+.expand-btn { background: none; border: none; cursor: pointer; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 11px; transition: transform 0.15s; padding: 0; vertical-align: middle; flex-shrink: 0; }
+.expand-btn.open { transform: rotate(90deg); }
+.issue-title-cell { display: flex; align-items: center; gap: 4px; }
+.detail-row td { padding: 0; border-bottom: 1px solid var(--border-light); white-space: normal; overflow: visible; text-overflow: clip; }
+.detail-content { display: flex; gap: 0; padding: 8px 8px 8px 32px; min-width: 0; }
+.file-list { flex: 0 0 50%; min-width: 0; overflow: hidden; }
+.file-list table { width: 100%; border-collapse: collapse; }
+.file-list th { font-size: calc(13px * 0.875); text-transform: uppercase; font-weight: 600; color: var(--text-secondary); padding: 6px 8px; border-bottom: 1px solid var(--border-color); text-align: left; height: 32px; }
+.file-list td { font-size: 13px; padding: 6px 8px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); }
+.file-list .file-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; display: block; }
+.file-list .position { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+.explanation-panel { flex: 1; padding-left: 16px; min-width: 0; overflow-wrap: break-word; word-wrap: break-word; }
+.explanation-panel h4 { font-size: calc(13px * 0.875); text-transform: uppercase; font-weight: 600; color: var(--text-secondary); padding: 6px 0; border-bottom: 1px solid var(--border-color); height: 32px; margin: 0; }
+.explanation-panel p { font-size: 13px; padding: 8px 0; color: var(--text-primary); line-height: 1.6; white-space: normal; word-break: break-word; }
+
+/* ── Experimental badge ──────────────────────────────────── */
+.badge-experimental { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #fef9c3; color: #854d0e; vertical-align: middle; margin-left: 8px; cursor: default; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer { text-align: center; margin-top: 24px; color: var(--text-muted); font-size: 13px; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .main { padding: 16px; }
+  .app-info-container { flex-direction: column; }
+  .domain-summary-container { flex-direction: column; }
+  .domain-summary-item { border-right: none; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; }
+  .detail-content { flex-direction: column; }
+  .file-list { flex: none; width: 100%; }
+  .explanation-panel { padding-left: 0; padding-top: 8px; }
+}
+/* ── Tab navigation ──────────────────────────────────────── */
+.tab-nav { display: flex; gap: 0; border-bottom: 1px solid var(--border-color); margin-bottom: 28px; flex-wrap: wrap; }
+.tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 18px; font-size: 13px; font-family: var(--font-family); color: var(--text-secondary); cursor: pointer; margin-bottom: -1px; white-space: nowrap; position: relative; }
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active { color: var(--link-color); border-bottom-color: var(--link-color); font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Tooltip on tab ──────────────────────────────────────── */
+.tab-btn[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #24292f; color: #ffffff; font-size: 12px; font-weight: 400; padding: 6px 10px; border-radius: 4px; white-space: normal; width: max-content; max-width: 260px; text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; }
+.tab-btn[data-tooltip]:hover::after { opacity: 1; }
+
+/* ── Fact content — prose column ─────────────────────────── */
+.fact-content { max-width: 860px; margin: 0 auto; line-height: 1.75; color: var(--text-primary); font-size: 14px; }
+.fact-content h1 { font-size: 22px; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary); letter-spacing: -0.01em; }
+.fact-content h1 + p { margin-top: 6px; color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+.fact-content h2 { font-size: 17px; font-weight: 700; margin: 36px 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); letter-spacing: -0.01em; }
+.fact-content h3 { font-size: 14px; font-weight: 700; margin: 24px 0 8px 0; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.04em; font-size: 12px; color: var(--text-secondary); }
+.fact-content p { margin: 10px 0; color: var(--text-primary); }
+.fact-content ul, .fact-content ol { margin: 10px 0 10px 22px; }
+.fact-content li { margin: 5px 0; }
+.fact-content a { color: var(--link-color); }
+.fact-content a:hover { text-decoration: underline; }
+
+/* ── Fact tables ─────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+.fact-content table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 13px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); }
+.fact-content thead { background: var(--bg-card); }
+.fact-content th { text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 14px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+.fact-content td { padding: 9px 14px; border-bottom: 1px solid var(--border-light); vertical-align: top; color: var(--text-primary); }
+.fact-content tr:last-child td { border-bottom: none; }
+.fact-content tbody tr:hover { background: #f6f8fa; }
+
+/* ── Fact code ───────────────────────────────────────────── */
+.fact-content code { font-family: var(--font-mono); font-size: 12px; background: #f0f1f3; padding: 2px 6px; border-radius: 4px; color: #c7254e; }
+.fact-content pre { background: #f6f8fa; border: 1px solid var(--border-light); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 14px 0; }
+.fact-content pre code { background: none; color: var(--text-primary); padding: 0; border-radius: 0; }
+.fact-content hr { border: none; border-top: 1px solid var(--border-light); margin: 28px 0; }
+.fact-content strong { font-weight: 600; }
+.fact-content em { font-style: italic; }
+.fact-content blockquote { border-left: 3px solid var(--border-color); margin: 12px 0; padding: 4px 16px; color: var(--text-secondary); }
+.fact-unavailable { padding: 32px 0; }
+.fact-unavailable h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); text-transform: none; letter-spacing: 0; margin: 0 0 12px 0; }
+.fact-unavailable p { margin: 0 0 8px 0; color: var(--text-secondary); }
+.fact-unavailable ol, .fact-unavailable ul { margin: 0 0 0 22px; color: var(--text-primary); }
+.fact-unavailable li { margin: 6px 0; }
+
+/* ── Mermaid diagram card ─────────────────────────────────── */
+.mermaid { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px 16px; margin: 20px 0; overflow-x: auto; text-align: center; cursor: pointer; position: relative; }
+.mermaid:hover { border-color: var(--border-color); }
+.mermaid svg { max-width: 100%; height: auto !important; display: inline-block; }
+.mermaid-zoom-hint { position: absolute; top: 8px; right: 10px; font-size: 11px; color: var(--text-muted); opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.mermaid:hover .mermaid-zoom-hint { opacity: 1; }
+
+/* ── Diagram lightbox ────────────────────────────────────── */
+.diagram-lightbox { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); align-items: center; justify-content: center; cursor: zoom-out; padding: 48px 32px; }
+.diagram-lightbox.open { display: flex; }
+.diagram-lightbox-inner { background: #ffffff; border-radius: 10px; padding: 32px; width: 88vw; max-height: 88vh; overflow: hidden; cursor: default; box-shadow: 0 24px 64px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
+.diagram-lightbox-inner svg { width: 100% !important; height: auto !important; max-height: 76vh; display: block; }
+.diagram-lightbox-close { position: fixed; top: 20px; right: 24px; background: #ffffff; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1001; }
+.diagram-lightbox-close:hover { background: var(--bg-card); }
+.diagram-lightbox-hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); color: #ffffff; font-size: 12px; padding: 6px 14px; border-radius: 20px; pointer-events: none; white-space: nowrap; z-index: 1001; }
+</style>
+<script>
+window.__mermaidPending = [];
+window.__mermaidReady = false;
+window.__renderMermaidIn = function(container) {
+  if (container) { window.__mermaidPending.push(container); }
+};
+</script>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: false, theme: 'default', flowchart: { useMaxWidth: true }, sequence: { useMaxWidth: true } });
+
+window.__renderMermaidIn = function(container) {
+  var nodes = container ? container.querySelectorAll('.mermaid:not([data-processed])') : [];
+  if (nodes.length > 0) {
+    mermaid.run({ nodes: Array.from(nodes) }).then(function() {
+      nodes.forEach(function(node) {
+        if (!node.querySelector('.mermaid-zoom-hint')) {
+          var hint = document.createElement('span');
+          hint.className = 'mermaid-zoom-hint';
+          hint.textContent = 'Click to expand';
+          node.appendChild(hint);
+        }
+      });
+    });
+  }
+};
+
+var drained = new Set();
+(window.__mermaidPending || []).forEach(function(c) {
+  if (!drained.has(c)) { drained.add(c); window.__renderMermaidIn(c); }
+});
+window.__mermaidPending = [];
+window.__mermaidReady = true;
+
+function renderActivePanels() {
+  document.querySelectorAll('.tab-panel.active').forEach(function(p) {
+    if (!drained.has(p)) { drained.add(p); window.__renderMermaidIn(p); }
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderActivePanels);
+} else {
+  renderActivePanels();
+}
+</script>
+</head><body>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true">
+  <button class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Close">&#x2715;</button>
+  <div class="diagram-lightbox-hint">Scroll to zoom &nbsp;&middot;&nbsp; Drag to pan &nbsp;&middot;&nbsp; Double-click to reset</div>
+  <div class="diagram-lightbox-inner" id="diagram-lightbox-inner"></div>
+</div>
+<div class="main">
+<h1>ContosoCrafts.WebSite</h1>
+<div class="report-card">
+  <h2>Component Information</h2>
+  <div class="report-card-body">
+    <div class="app-info-container">
+      <div class="app-info-column">
+        <div class="app-info-row"><span class="app-info-label">Component Name</span><span class="app-info-value">ContosoCrafts.WebSite</span></div>
+        <div class="app-info-row"><span class="app-info-label">Effort</span><span class="app-info-value" id="effort-display">S (total story points: 11)</span></div>
+      </div>
+      <div class="app-info-column">
+        <div class="app-info-row"><span class="app-info-label">Build Tools</span><span class="app-info-value">MSBuild</span></div>
+        <div class="app-info-row"><span class="app-info-label">Frameworks</span><span class="app-info-value">netcoreapp3.1</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="tab-issues" data-tooltip="Issues detected in the source code">Issues</button>
+  <button class="tab-btn" data-tab="tab-arch" data-tooltip="How the app&#x27;s layers connect — from UI to data.">Architecture</button>
+  <button class="tab-btn" data-tab="tab-api" data-tooltip="Endpoints exposed by this app and how services communicate.">API Contracts</button>
+  <button class="tab-btn" data-tab="tab-config" data-tooltip="Environment settings, runtime profiles, and deployment manifests.">Configuration</button>
+  <button class="tab-btn" data-tab="tab-workflows" data-tooltip="Domain entities and the core flows users move through.">Business Workflows</button>
+  <button class="tab-btn" data-tab="tab-deps" data-tooltip="Libraries and frameworks this app depends on, grouped by category.">Dependencies</button>
+  <button class="tab-btn" data-tab="tab-data" data-tooltip="Database schema, entity relationships, and persistence behavior.">Data Model</button>
+</nav>
+<div id="tab-issues" class="tab-panel active">
+<div class="target-select-container">
+  <label for="target-select">Target Compute Service:</label>
+  <select id="target-select" onchange="onTargetChange(this.value)">
+    <option value="AppService.Windows">Azure App Service</option>
+    <option value="AppService.Linux">Azure Kubernetes Service</option>
+    <option value="AKS.Linux">Azure Container Apps</option>
+    <option value="AKS.Windows">Azure App Service Container</option>
+    <option value="ACA">Azure App Service Managed Instance</option>
+  </select>
+</div>
+<div class="report-card">
+  <h2>Issue Summary</h2>
+  <div class="report-card-body">
+    <div class="domain-summary-container" id="donut-container">
+      <div class="domain-summary-item">
+<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-mandatory)" stroke-width="15" stroke-dasharray="71.80 219.91" stroke-dashoffset="-0.00"/>
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-potential)" stroke-width="15" stroke-dasharray="71.80 219.91" stroke-dashoffset="-73.30"/>
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-optional)" stroke-width="15" stroke-dasharray="71.80 219.91" stroke-dashoffset="-146.61"/>
+</svg>
+
+        <h3>Cloud Readiness</h3>
+        <div class="count">3 issues</div>
+      </div>
+      <div class="domain-summary-item">
+<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-mandatory)" stroke-width="15" stroke-dasharray="108.46 219.91" stroke-dashoffset="-0.00"/>
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-potential)" stroke-width="15" stroke-dasharray="108.46 219.91" stroke-dashoffset="-109.96"/>
+</svg>
+
+        <h3>DotNET Upgrade</h3>
+        <div class="count">2 issues</div>
+      </div>
+    </div>
+    <div class="criticality-legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-mandatory)"></span>Mandatory</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-potential)"></span>Potential</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-optional)"></span>Optional</div>
+    </div>
+  </div>
+</div>
+<div class="filter-bar" id="filter-bar">
+  <div class="multi-select" id="domain-ms">
+    <button class="multi-select-btn" onclick="toggleMultiSelect('domain-ms')">Domain</button>
+    <div class="multi-select-dropdown">
+      <label class="multi-select-option"><input type="checkbox" value="cloud-readiness" onchange="onMultiSelectChange('domain-ms','Domain')"/> Cloud Readiness</label>
+      <label class="multi-select-option"><input type="checkbox" value="dotnet-upgrade" onchange="onMultiSelectChange('domain-ms','Domain')"/> DotNET Upgrade</label>
+    </div>
+  </div>
+  <div class="multi-select" id="criticality-ms">
+    <button class="multi-select-btn" onclick="toggleMultiSelect('criticality-ms')">Criticality</button>
+    <div class="multi-select-dropdown">
+      <label class="multi-select-option"><input type="checkbox" value="mandatory" onchange="onMultiSelectChange('criticality-ms','Criticality')"/> Mandatory</label>
+      <label class="multi-select-option"><input type="checkbox" value="potential" onchange="onMultiSelectChange('criticality-ms','Criticality')"/> Potential</label>
+      <label class="multi-select-option"><input type="checkbox" value="optional" onchange="onMultiSelectChange('criticality-ms','Criticality')"/> Optional</label>
+    </div>
+  </div>
+  <a class="clear-filters" href="javascript:void(0)" onclick="clearAllFilters()">Clear all</a>
+</div>
+<div class="issue-section" data-domain="cloud-readiness">
+  <h2>Cloud Readiness</h2>
+  <table class="issue-table">
+    <colgroup><col class="col-issue"/><col class="col-criticality"/><col class="col-storypoint"/></colgroup>
+    <thead><tr><th>Issue Category</th><th>Criticality</th><th>Story Point</th></tr></thead>
+    <tbody>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;AppService.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;AppService.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;AKS.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;AKS.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;ACA&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;AppServiceContainer.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;AppServiceContainer.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;AppServiceManagedInstance.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="Runtime.0001" onclick="toggleRow('row-cloudreadiness-0', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-0">&#x276F;</button> Out of support .NET target framework is detected</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-0" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src\ContosoCrafts.WebSite.csproj">src\ContosoCrafts.WebSite.csproj</span></td><td><span class="position"></span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>Out of support .NET target framework is detected.</p><p>If you are targeting Managed Instance on Azure App Service, target .NET 10 for best cloud experience or validate on .NET 4.8/3.5 (preinstalled). Use .NET Upgrade Assistant and run staging validation on Managed Instance.</p><p>.NETCoreApp or .NET 5.0 target frameworks are out of support and Azure App Service sandbox does not have runtime installed for them. It is recommended to upgrade to .NET 8+ or deploy your application in a self-contained mode which would allow you to bring framework dependencies with your application.</p><p>Alternatively, you could deploy your application to Azure App Service as a container and manage the contents of the container yourself, while keeping other benefits of App Service.</p><p>Other alternatives, depending on the architecture of the application, could be to host your app in Azure VM, ACR or Azure Kubernetes service.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="potential" data-targets='{&quot;AppService.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;AppService.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;AKS.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;AKS.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;ACA&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;AppServiceContainer.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;AppServiceContainer.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;},&quot;AppServiceManagedInstance.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;potential&quot;}}' data-default-effort="3" data-default-severity="potential" data-rule="Local.0003" onclick="toggleRow('row-cloudreadiness-1', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-1">&#x276F;</button> Local or network IO operations detected</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-potential"></span>Potential</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-1" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src\Services\JsonFileProductService.cs">src\Services\JsonFileProductService.cs</span></td><td><span class="position">Line 22</span></td></tr>
+            <tr><td><span class="file-path" title="src\Services\JsonFileProductService.cs">src\Services\JsonFileProductService.cs</span></td><td><span class="position">Line 45</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>Your application has local or network IO operations.</p><p>If you are targeting Managed Instance on Azure App Service, move persistent I/O to storage mounts (Azure Files/UNC). Keep local writes to temp only; connect to external dependencies via private endpoints/VNet to reduce latency.</p><p>IO operations outside of the application folder might not be available on Azure App Service. Review and ensure IO APIs are attempting to access paths that will be available when your app is running on App Service sandbox. If you choose the containerized hosting option, your scenario still might be broken or have scalability issues.</p><p>Possible solutions:<br/>    1. Files that the application needs can be deployed with the application or put in Azure Storage. You can use Azure Storage File Shares as a drop-in replacement for on-premises file share.<br/>    2. Other services that the application depends on might need to be migrated to Azure, this way you will get the benefit of lower latency in the cloud.<br/>    3. If your application needs to depend on services that run on-premise, you can connect your Azure and local networks with ExpressRoute, Hybrid Connections, or VPN solutions.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="optional" data-targets='{&quot;AppService.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;AppService.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;AKS.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;AKS.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;ACA&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;AppServiceContainer.Linux&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;AppServiceContainer.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;AppServiceManagedInstance.Windows&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;}}' data-default-effort="3" data-default-severity="optional" data-rule="Scale.0001" onclick="toggleRow('row-cloudreadiness-2', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-2">&#x276F;</button> Static content detected</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-optional"></span>Optional</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-2" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src\ContosoCrafts.WebSite.csproj">src\ContosoCrafts.WebSite.csproj</span></td><td><span class="position"></span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>Static content detected.</p><p>Your current approach of serving static content directly might lead to increased costs, performance issues, maintenance challenges (requiring application redeployment for content changes), and security risks.</p><p>Consider moving static content to Azure Blob Storage and adding Azure CDN.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+<div class="issue-section" data-domain="dotnet-upgrade">
+  <h2>DotNET Upgrade <a href="scenarios/dotnet-version-upgrade/assessment.html" style="font-size:12px;font-weight:400;margin-left:12px;">View Details</a></h2>
+  <table class="issue-table">
+    <colgroup><col class="col-issue"/><col class="col-criticality"/><col class="col-storypoint"/></colgroup>
+    <thead><tr><th>Issue Category</th><th>Criticality</th><th>Story Point</th></tr></thead>
+    <tbody>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{}' data-default-effort="1" data-default-severity="mandatory" data-rule="Project.0002" onclick="toggleRow('row-dotnetupgrade-0', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-dotnetupgrade-0">&#x276F;</button> Project&#x27;s target framework(s) needs to be changed</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">1</td>
+    </tr>
+    <tr class="detail-row" id="row-dotnetupgrade-0" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src\ContosoCrafts.WebSite.csproj">src\ContosoCrafts.WebSite.csproj</span></td><td><span class="position"></span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>Project&#x27;s target framework(s) needs to be changed to the new target framework that you selected for this upgrade.</p><p>During upgrade target framework will be adjusted to corresponding platform when applicable. In some cases project would result in multiple target frameworks after the upgrade if it was using features that now have their own platforms in modern .NET frameworks (windows, iOS, Android etc).</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="potential" data-targets='{}' data-default-effort="1" data-default-severity="potential" data-rule="Api.0003" onclick="toggleRow('row-dotnetupgrade-1', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-dotnetupgrade-1">&#x276F;</button> Behavioral change in selected .NET version</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-potential"></span>Potential</span></td>
+      <td class="sp-cell">1</td>
+    </tr>
+    <tr class="detail-row" id="row-dotnetupgrade-1" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="src\Startup.cs">src\Startup.cs</span></td><td><span class="position">Line 35, Col 16</span></td></tr>
+            <tr><td><span class="file-path" title="src\Startup.cs">src\Startup.cs</span></td><td><span class="position">Line 21, Col 12</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>API has a behavioral change in selected .NET version: code and binaries may behave differently at runtime without needing recompilation, but the new behavior might be undesirable and require updates.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+</div><!-- #tab-issues -->
+<div id="tab-arch" class="tab-panel">
+  <div class="fact-content"><h1 id="architecture-diagram">Architecture Diagram</h1>
+<p>ContosoCrafts is an ASP.NET Core 3.1 web application that serves as a product catalog with rating capabilities, using a JSON file as a lightweight data store.</p>
+<h2 id="application-architecture">Application Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph Client["Client Layer"]
+        Browser["Web Browser"]
+    end
+    subgraph App["Application Layer - ASP.NET Core 3.1"]
+        RazorPages["Razor Pages"]
+        BlazorComp["Blazor Server Components"]
+        WebAPI["Web API Controllers"]
+    end
+    subgraph Service["Service Layer"]
+        ProductSvc["JsonFileProductService"]
+    end
+    subgraph Data["Data Layer"]
+        JsonFile[("products.json (wwwroot/data)")]
+    end
+    subgraph External["External Services"]
+        FontAwesome["Font Awesome CDN"]
+    end
+
+    Browser -->|"HTTP/HTTPS requests"| RazorPages
+    Browser -->|"SignalR (Blazor)"| BlazorComp
+    Browser -->|"REST API calls"| WebAPI
+    RazorPages -->|"injects"| ProductSvc
+    BlazorComp -->|"injects"| ProductSvc
+    WebAPI -->|"injects"| ProductSvc
+    ProductSvc -->|"reads/writes JSON"| JsonFile
+    Browser -->|"loads icons"| FontAwesome
+</div>
+<h3 id="technology-stack-summary">Technology Stack Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>Presentation</td><td>ASP.NET Core Razor Pages</td><td>3.1</td><td>Server-side HTML rendering for main pages</td></tr>
+<tr><td>Presentation</td><td>Blazor Server</td><td>3.1</td><td>Interactive product listing component with real-time updates</td></tr>
+<tr><td>API</td><td>ASP.NET Core Web API</td><td>3.1</td><td>REST endpoint for products and ratings</td></tr>
+<tr><td>Service</td><td>JsonFileProductService</td><td>N/A</td><td>Business logic for product retrieval and rating</td></tr>
+<tr><td>Data</td><td>JSON file (products.json)</td><td>N/A</td><td>Flat-file data store for product catalog</td></tr>
+<tr><td>Runtime</td><td>.NET Core</td><td>3.1</td><td>Application runtime</td></tr>
+</tbody></table></div>
+<h3 id="data-storage-external-services">Data Storage & External Services</h3>
+<p>The application uses a simple JSON file (<code>wwwroot/data/products.json</code>) as its data store, read and written directly by <code>JsonFileProductService</code>. There is no relational database, cache, or message broker. The only external service dependency is the Font Awesome CDN used for star rating icons in the Blazor component.</p>
+<h3 id="key-architectural-decisions">Key Architectural Decisions</h3>
+<ul>
+<li>Uses a flat JSON file as a lightweight data store instead of a relational database, keeping the application self-contained with no external database dependencies.</li>
+<li>Combines Razor Pages (for standard page rendering) and Blazor Server (for the interactive product list component) within the same ASP.NET Core application, with a REST API layer for PATCH operations (rating submission).</li>
+<li>Dependency injection is used throughout: <code>JsonFileProductService</code> is registered as <code>Transient</code> and injected into Razor Pages, Blazor components, and API controllers.</li>
+</ul>
+<h2 id="component-relationships">Component Relationships</h2>
+<div class="mermaid">
+flowchart LR
+    subgraph Presentation["Presentation"]
+        IndexPage["IndexModel (Razor Page)"]
+        ErrorPage["ErrorModel (Razor Page)"]
+        PrivacyPage["PrivacyModel (Razor Page)"]
+        ProductListComp["ProductList (Blazor Component)"]
+    end
+    subgraph API["API Layer"]
+        ProductsCtrl["ProductsController"]
+    end
+    subgraph BusinessLogic["Business Logic"]
+        ProductSvc["JsonFileProductService"]
+    end
+    subgraph DataAccess["Data Access"]
+        JsonFile["products.json"]
+    end
+    subgraph Models["Models"]
+        ProductModel["Product"]
+        RatingReq["RatingRequest"]
+    end
+
+    IndexPage -->|"injects and calls"| ProductSvc
+    ProductListComp -->|"injects and calls"| ProductSvc
+    ProductsCtrl -->|"injects and calls"| ProductSvc
+    ProductSvc -->|"reads/writes"| JsonFile
+    ProductSvc -->|"deserializes"| ProductModel
+    ProductsCtrl -->|"uses"| RatingReq
+    IndexPage -->|"exposes"| ProductModel
+</div>
+<h3 id="component-inventory">Component Inventory</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th><th>Layer</th><th>Type</th><th>Responsibility</th>
+</tr></thead><tbody>
+<tr><td>IndexModel</td><td>Presentation</td><td>Razor Page</td><td>Home page — loads and exposes the product list</td></tr>
+<tr><td>ErrorModel</td><td>Presentation</td><td>Razor Page</td><td>Error handling page</td></tr>
+<tr><td>PrivacyModel</td><td>Presentation</td><td>Razor Page</td><td>Privacy policy page</td></tr>
+<tr><td>ProductList</td><td>Presentation</td><td>Blazor Server Component</td><td>Interactive product listing with modal detail view and star rating</td></tr>
+<tr><td>ProductsController</td><td>API</td><td>MVC API Controller</td><td>REST endpoints: GET all products, PATCH to add a rating</td></tr>
+<tr><td>JsonFileProductService</td><td>Business Logic</td><td>Service</td><td>Reads/writes product data from JSON file; adds ratings</td></tr>
+<tr><td>Product</td><td>Models</td><td>Entity/DTO</td><td>Product data model (Id, Maker, Image, Url, Title, Description, Ratings)</td></tr>
+<tr><td>RatingRequest</td><td>Models</td><td>DTO</td><td>Request payload for rating submission (ProductId, Rating)</td></tr>
+</tbody></table></div></div>
+</div>
+<div id="tab-api" class="tab-panel">
+  <div class="fact-content"><h1 id="api-service-communication-contracts">API & Service Communication Contracts</h1>
+<p>ContosoCrafts.WebSite exposes a single REST API controller with 2 endpoints (GET and PATCH on <code>/products</code>) and serves its UI via Razor Pages and a Blazor Server component; all communication is synchronous and intra-process with no inter-service calls.</p>
+<h2 id="service-catalog">Service Catalog</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Port</th><th>Category</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td>5001 (HTTPS) / 5000 (HTTP)</td><td>Business</td><td>Monolithic ASP.NET Core 3.1 web application providing product catalog browsing and star rating functionality</td></tr>
+</tbody></table></div>
+<h2 id="api-endpoints-inventory">API Endpoints Inventory</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Method</th><th>Path</th><th>Request Type</th><th>Response Type</th>
+</tr></thead><tbody>
+<tr><td>ProductsController</td><td>GET</td><td>/products</td><td>None</td><td><code>IEnumerable<Product></code> (JSON array) — 200 OK</td></tr>
+<tr><td>ProductsController</td><td>PATCH</td><td>/products</td><td><code>RatingRequest</code> (JSON body: <code>productId</code>, <code>rating</code>)</td><td>200 OK on success; 400 Bad Request if <code>productId</code> is null</td></tr>
+</tbody></table></div>
+<h2 id="management-observability-endpoints">Management & Observability Endpoints</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Endpoint</th><th>Custom Metrics</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td>None configured</td><td>None</td></tr>
+</tbody></table></div>
+<p>No ASP.NET Core health checks (<code>/health</code>, <code>/healthz</code>), Swagger UI (<code>/swagger</code>), or any observability endpoints are configured. Logging is limited to <code>Console.WriteLine</code> calls in the Blazor component.</p>
+<h2 id="dtos-contracts">DTOs & Contracts</h2>
+<p>Two data contracts are present in the application:</p>
+<ul>
+<li><strong><code>Product</code></strong> (namespace <code>ContosoCrafts.WebSite.Models</code>): The primary domain entity used as both the data store record and the API response model. It is a mutable class (plain C# class, not a record) serialized using <code>System.Text.Json</code>. Field details are documented in <code>data-architecture.md</code>.</li>
+<li><strong><code>RatingRequest</code></strong> (nested class inside <code>ProductsController</code>): A minimal request DTO used as the PATCH body. It contains <code>ProductId</code> (nullable string) and <code>Rating</code> (int). It is a mutable class with no immutability guarantee.</li>
+</ul>
+<p>No OpenAPI/Swagger specification, <code>.proto</code> files, or GraphQL schema exist. Serialization is handled by <code>System.Text.Json</code> with <code>PropertyNameCaseInsensitive = true</code> for deserialization. The <code>img</code> JSON property is mapped to the <code>Image</code> C# property via <code>[JsonPropertyName("img")]</code>.</p>
+<h2 id="communication-patterns">Communication Patterns</h2>
+<p><strong>Synchronous only</strong>: All communication is intra-process. The Razor Pages <code>IndexModel</code> and Blazor <code>ProductList</code> component both call <code>JsonFileProductService</code> directly via dependency injection (no HTTP hops). The REST API controller also calls the same service directly.</p>
+<p><strong>No inter-service communication</strong>: There are no <code>HttpClient</code>, <code>RestTemplate</code>, <code>WebClient</code>, or Feign client usages. There is no message broker, event bus, Kafka, RabbitMQ, or Azure Service Bus integration.</p>
+<p><strong>No resilience patterns</strong>: No circuit breaker (Polly, Resilience4j), retry policy, timeout configuration, or bulkhead pattern is configured.</p>
+<p><strong>No service discovery or API gateway</strong>: The application is a self-contained monolith with no service registry or gateway.</p>
+<p><strong>Security posture</strong>: No authentication or authorization is configured. <code>app.UseAuthorization()</code> is registered in the middleware pipeline but no authorization policies or authentication providers are set up. All endpoints — including the PATCH rating endpoint — are publicly accessible with no authentication checks. HTTPS redirection (<code>app.UseHttpsRedirection()</code>) is enabled, providing transport-level security, but there is no TLS certificate management configured beyond the default Kestrel development certificate.</p>
+<h2 id="service-technology-matrix">Service Technology Matrix</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Web Framework</th><th>Data Access</th><th>Discovery</th><th>Gateway</th><th>Health Checks</th><th>Cache</th><th>Metrics</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td>ASP.NET Core MVC + Razor Pages + Blazor Server</td><td>JSON file (System.Text.Json)</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+</tbody></table></div>
+<h2 id="service-communication-sequence">Service Communication Sequence</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Browser as "Web Browser"
+    participant RazorPage as "IndexModel (Razor Page)"
+    participant BlazorComp as "ProductList (Blazor Component)"
+    participant ApiCtrl as "ProductsController (REST API)"
+    participant Svc as "JsonFileProductService"
+    participant JsonFile as "products.json"
+
+    Note over Browser,JsonFile: Page Load Flow
+    Browser->>RazorPage: GET /
+    RazorPage->>Svc: GetProducts()
+    Svc->>JsonFile: File.OpenText + Deserialize
+    JsonFile-->>Svc: Product[]
+    Svc-->>RazorPage: IEnumerable(Product)
+    RazorPage-->>Browser: HTML page with product list
+
+    Note over Browser,JsonFile: Blazor Interactive Rating Flow
+    Browser->>BlazorComp: SignalR (Blazor circuit)
+    BlazorComp->>Svc: GetProducts()
+    Svc->>JsonFile: File.OpenText + Deserialize
+    JsonFile-->>Svc: Product[]
+    Svc-->>BlazorComp: IEnumerable(Product)
+    BlazorComp-->>Browser: Rendered product cards
+
+    Browser->>BlazorComp: Click star rating (onclick event)
+    BlazorComp->>Svc: AddRating(productId, rating)
+    Svc->>JsonFile: Read + Modify + Write JSON
+    JsonFile-->>Svc: Updated
+    Svc-->>BlazorComp: void
+    BlazorComp->>Svc: GetProducts() (refresh)
+    Svc->>JsonFile: File.OpenText + Deserialize
+    JsonFile-->>Svc: Product[]
+    Svc-->>BlazorComp: Updated Product list
+    BlazorComp-->>Browser: Re-rendered with new rating
+
+    Note over Browser,JsonFile: REST API Flow
+    Browser->>ApiCtrl: GET /products
+    ApiCtrl->>Svc: GetProducts()
+    Svc->>JsonFile: File.OpenText + Deserialize
+    JsonFile-->>Svc: Product[]
+    Svc-->>ApiCtrl: IEnumerable(Product)
+    ApiCtrl-->>Browser: 200 OK JSON array
+
+    Browser->>ApiCtrl: PATCH /products {productId, rating}
+    alt productId is null
+        ApiCtrl-->>Browser: 400 Bad Request
+    else Valid request
+        ApiCtrl->>Svc: AddRating(productId, rating)
+        Svc->>JsonFile: Read + Modify + Write JSON
+        JsonFile-->>Svc: Updated
+        Svc-->>ApiCtrl: void
+        ApiCtrl-->>Browser: 200 OK
+    end
+</div></div>
+</div>
+<div id="tab-config" class="tab-panel">
+  <div class="fact-content"><h1 id="configuration-externalized-settings-inventory">Configuration & Externalized Settings Inventory</h1>
+<p>ContosoCrafts.WebSite uses two configuration sources (a base <code>appsettings.json</code> and a Development override) with no externalized secret store, config server, feature flag framework, or environment variable–based configuration.</p>
+<h2 id="configuration-sources">Configuration Sources</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Source</th><th>Type</th><th>Path/Location</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>appsettings.json</td><td>JSON config file</td><td><code>src/appsettings.json</code></td><td>Base configuration; applies to all environments</td></tr>
+<tr><td>appsettings.Development.json</td><td>JSON config file</td><td><code>src/appsettings.Development.json</code></td><td>Development environment override; increases log verbosity</td></tr>
+<tr><td>wwwroot/data/products.json</td><td>JSON data file</td><td><code>src/wwwroot/data/products.json</code></td><td>Not a configuration file; the application's flat-file data store (see <code>data-architecture.md</code>)</td></tr>
+</tbody></table></div>
+<p>No <code>web.config</code>, <code>launchSettings.json</code>, Spring Cloud Config, Azure App Configuration, Kubernetes ConfigMaps/Secrets, HashiCorp Vault, or <code>.env</code> files exist in the repository.</p>
+<h2 id="build-profiles">Build Profiles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Profile</th><th>Activation</th><th>Purpose</th><th>Key Dependencies/Plugins</th>
+</tr></thead><tbody>
+<tr><td>Debug</td><td>Default for <code>dotnet run</code> and IDE</td><td>Development build; includes debug symbols, no optimizations</td><td><code>Microsoft.NET.Sdk.Web</code> (implicit)</td></tr>
+<tr><td>Release</td><td>Manual: <code>dotnet publish -c Release</code></td><td>Production-optimized build; enables IL trimming and optimizations</td><td><code>Microsoft.NET.Sdk.Web</code> (implicit)</td></tr>
+</tbody></table></div>
+<p>No custom MSBuild properties or conditional compilation symbols are defined in the project file beyond the default SDK configurations.</p>
+<h2 id="runtime-profiles">Runtime Profiles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Profile</th><th>Activation Method</th><th>Config Files Loaded</th><th>Key Overrides</th>
+</tr></thead><tbody>
+<tr><td>Development</td><td><code>ASPNETCORE_ENVIRONMENT=Development</code> (default for <code>dotnet run</code>)</td><td><code>appsettings.json</code> + <code>appsettings.Development.json</code></td><td>Log levels: Default→Debug, System→Information, Microsoft→Information</td></tr>
+<tr><td>Production</td><td><code>ASPNETCORE_ENVIRONMENT=Production</code> (default in published/deployed scenarios)</td><td><code>appsettings.json</code> only</td><td>Uses <code>app.UseExceptionHandler("/Error")</code> + HSTS instead of developer exception page</td></tr>
+</tbody></table></div>
+<p>No staging, testing, or cloud-specific runtime profiles exist.</p>
+<h2 id="properties-inventory">Properties Inventory</h2>
+<h3 id="contosocrafts-website">ContosoCrafts.WebSite</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Property Key</th><th>Default Value</th><th>Profile Override</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td><code>Logging:LogLevel:Default</code></td><td><code>Information</code></td><td><code>Debug</code> (Development)</td><td><code>appsettings.json</code> / <code>appsettings.Development.json</code></td></tr>
+<tr><td><code>Logging:LogLevel:Microsoft</code></td><td><code>Warning</code></td><td><code>Information</code> (Development)</td><td><code>appsettings.json</code> / <code>appsettings.Development.json</code></td></tr>
+<tr><td><code>Logging:LogLevel:System</code></td><td>_(not set in base)_</td><td><code>Information</code> (Development)</td><td><code>appsettings.Development.json</code></td></tr>
+<tr><td><code>Logging:LogLevel:Microsoft.Hosting.Lifetime</code></td><td><code>Information</code></td><td>_(no override)_</td><td><code>appsettings.json</code></td></tr>
+<tr><td><code>AllowedHosts</code></td><td><code>*</code></td><td>_(no override)_</td><td><code>appsettings.json</code></td></tr>
+</tbody></table></div>
+<p>No database connection strings, API keys, external service URLs, or application-specific settings are declared in any configuration file.</p>
+<h2 id="startup-parameters-resource-requirements">Startup Parameters & Resource Requirements</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Runtime Options</th><th>Memory</th><th>Instance Count</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td>No JVM/CLR startup options configured; defaults apply</td><td>Not specified (no Docker, K8s, or cloud deployment manifest)</td><td>1 (single instance; no scale-out configuration)</td></tr>
+</tbody></table></div>
+<p>No <code>-Xms</code>/<code>-Xmx</code> equivalents for .NET (<code>COMPlus_GCHeapHardLimit</code>, <code>DOTNET_GCHeapHardLimit</code>), Docker <code>mem_limit</code>, or Kubernetes resource requests/limits are configured.</p>
+<h2 id="startup-dependency-chain">Startup Dependency Chain</h2>
+<p>ContosoCrafts.WebSite has no external service dependencies and therefore no startup ordering requirements. The application starts independently as a self-contained process:</p>
+<ol>
+<li><strong>ContosoCrafts.WebSite</strong> — starts standalone; no wait mechanisms, no health-check probes, no config server to connect to before startup.</li>
+</ol>
+<p>There is no config server, service discovery registry, database server, or message broker to wait for.</p>
+<h2 id="secrets-sensitive-configuration">Secrets & Sensitive Configuration</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Secret Reference</th><th>Type</th><th>Storage</th>
+</tr></thead><tbody>
+<tr><td>_(None detected)_</td><td>—</td><td>—</td></tr>
+</tbody></table></div>
+<p>No secrets, passwords, API keys, connection strings with credentials, or sensitive configuration entries are present in any configuration file. The application has no external service dependencies that would require credentials.</p>
+<h3 id="secrets-provisioning-workflow">Secrets Provisioning Workflow</h3>
+<p>No secrets provisioning workflow exists. The application does not connect to any external system requiring authentication (no database, no external API, no message broker). If external services are added during modernization (e.g., Azure SQL, Azure Service Bus), a secrets management strategy using Azure Key Vault with managed identity is recommended.</p>
+<h2 id="feature-flags">Feature Flags</h2>
+<p>No feature flag framework is configured. There are no Spring Feature Flags, LaunchDarkly, Unleash, .NET <code>Microsoft.FeatureManagement</code>, <code>@ConditionalOnProperty</code>, or custom toggle patterns in the codebase.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Flag Name</th><th>Default</th><th>Controlled By</th>
+</tr></thead><tbody>
+<tr><td>_(None detected)_</td><td>—</td><td>—</td></tr>
+</tbody></table></div>
+<h2 id="framework-runtime-versions">Framework & Runtime Versions</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th><th>Version</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td>Target Framework</td><td>.NET Core 3.1 (<code>netcoreapp3.1</code>)</td><td><code>src/ContosoCrafts.WebSite.csproj</code></td></tr>
+<tr><td>ASP.NET Core</td><td>3.1 (implicit via <code>Microsoft.NET.Sdk.Web</code>)</td><td><code>src/ContosoCrafts.WebSite.csproj</code></td></tr>
+<tr><td>Blazor Server</td><td>3.1 (implicit via <code>Microsoft.NET.Sdk.Web</code>)</td><td><code>src/ContosoCrafts.WebSite.csproj</code></td></tr>
+<tr><td>Razor Pages</td><td>3.1 (implicit via <code>Microsoft.NET.Sdk.Web</code>)</td><td><code>src/ContosoCrafts.WebSite.csproj</code></td></tr>
+<tr><td>Bootstrap</td><td>4.3.1</td><td><code>src/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css</code> (inline comment)</td></tr>
+<tr><td>jQuery</td><td>3.3.1</td><td><code>src/wwwroot/lib/jquery/dist/jquery.js</code> (inline comment)</td></tr>
+<tr><td>Font Awesome</td><td>4.7.0</td><td><code>src/Components/ProductList.razor</code> (CDN URL)</td></tr>
+<tr><td>Hosting Model</td><td>Out-of-process</td><td><code>src/ContosoCrafts.WebSite.csproj</code> (<code><AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel></code>)</td></tr>
+<tr><td>Nullable Reference Types</td><td>Enabled</td><td><code>src/ContosoCrafts.WebSite.csproj</code> (<code><Nullable>enable</Nullable></code>)</td></tr>
+</tbody></table></div></div>
+</div>
+<div id="tab-workflows" class="tab-panel">
+  <div class="fact-content"><h1 id="core-business-workflows">Core Business Workflows</h1>
+<p>ContosoCrafts is a product catalog application that enables users to browse maker-crafted products and submit 1–5 star ratings for each item.</p>
+<h2 id="domain-entities">Domain Entities</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Entity</th><th>Service / Bounded Context</th><th>Description</th><th>Key Relationships</th>
+</tr></thead><tbody>
+<tr><td>Product</td><td>Product Catalog (single service)</td><td>Represents a maker-crafted item available for browsing and rating. Includes identity, display information, and accumulated user ratings.</td><td>Self-contained; no relationships to other entities</td></tr>
+</tbody></table></div>
+<h2 id="service-to-domain-mapping">Service-to-Domain Mapping</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Domain Context</th><th>Owned Entities</th><th>External Dependencies</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td>Product Catalog</td><td>Product</td><td>None</td></tr>
+</tbody></table></div>
+<p>The application is a single-service monolith. All domain logic is owned by <code>JsonFileProductService</code>. There are no cross-service boundaries, event buses, or external service dependencies.</p>
+<h2 id="primary-workflows">Primary Workflows</h2>
+<h3 id="workflow-1-browse-product-catalog">Workflow 1: Browse Product Catalog</h3>
+<p>A user visits the home page and views all available products. The system reads the full product list from the JSON data store and renders each product as a card showing the product image and title. From the Razor Pages entry point, this is a single-step read operation.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>User navigates to <code>/</code> (home page)</li>
+<li><code>IndexModel.OnGet()</code> calls <code>JsonFileProductService.GetProducts()</code></li>
+<li>The service reads and deserializes <code>products.json</code></li>
+<li>All products are returned and rendered as HTML cards</li>
+</ol>
+<h3 id="workflow-2-view-product-details-blazor-interactive">Workflow 2: View Product Details (Blazor Interactive)</h3>
+<p>A user clicks "More Info" on a product card in the Blazor component. The system displays a modal dialog with the product's full details (title, description, image) and the current average star rating alongside individual star controls.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>User clicks the "More Info" button on a product card (Blazor <code>onclick</code> event)</li>
+<li><code>ProductList.SelectProduct(productId)</code> is called</li>
+<li>The service fetches all products and filters to the selected product</li>
+<li><code>GetCurrentRating()</code> computes the vote count and average rating from the <code>Ratings</code> array</li>
+<li>The modal renders with product details and the computed average rating displayed as filled/unfilled stars</li>
+</ol>
+<p><strong>Business Rule:</strong> If the product has no ratings (<code>Ratings == null</code>), <code>currentRating</code> and <code>voteCount</code> default to 0 and the UI shows "Be the first to vote!".</p>
+<h3 id="workflow-3-submit-a-product-rating">Workflow 3: Submit a Product Rating</h3>
+<p>A user clicks a star (1–5) in the product detail modal. The rating is recorded and the UI immediately reflects the updated average.</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>User clicks a star control in the modal (Blazor <code>onclick</code> event fires <code>SubmitRating(currentStar)</code>)</li>
+<li><code>ProductList.SubmitRating(rating)</code> calls <code>JsonFileProductService.AddRating(productId, rating)</code></li>
+<li><code>AddRating</code> reads all products from <code>products.json</code></li>
+<li>The target product's <code>Ratings</code> array is retrieved:</li>
+</ol>
+<ul>
+<li>If <code>Ratings == null</code>: the array is initialized with <code>[rating]</code></li>
+<li>If <code>Ratings</code> is non-null: the new rating integer is appended to the existing array</li>
+</ul>
+<ol>
+<li>The entire product list is serialized and written back to <code>products.json</code></li>
+<li><code>SelectProduct(selectedProductId)</code> is called again to refresh the selected product's displayed state, re-computing and displaying the updated average rating</li>
+</ol>
+<h3 id="workflow-4-retrieve-products-via-rest-api">Workflow 4: Retrieve Products via REST API</h3>
+<p>An API consumer fetches the product list as JSON via <code>GET /products</code> or submits a rating via <code>PATCH /products</code>.</p>
+<p><strong>Steps (GET):</strong></p>
+<ol>
+<li>Client sends <code>GET /products</code></li>
+<li><code>ProductsController.Get()</code> calls <code>JsonFileProductService.GetProducts()</code></li>
+<li>Product list is returned as JSON (200 OK)</li>
+</ol>
+<p><strong>Steps (PATCH):</strong></p>
+<ol>
+<li>Client sends <code>PATCH /products</code> with <code>{ "productId": "<id>", "rating": <1-5> }</code></li>
+<li><code>ProductsController.Patch()</code> validates that <code>request</code> and <code>request.ProductId</code> are non-null (returns 400 Bad Request if invalid)</li>
+<li><code>JsonFileProductService.AddRating(productId, rating)</code> is called (same logic as Workflow 3, Step 3–5)</li>
+<li>Returns 200 OK</li>
+</ol>
+<h2 id="cross-service-data-flows">Cross-Service Data Flows</h2>
+<p>ContosoCrafts is a monolith with a single data source (<code>products.json</code>). There are no cross-service data flows, gateway aggregation patterns, or inter-service communications. All read and write operations are handled by <code>JsonFileProductService</code> directly accessing the local JSON file. No circuit breaker or fallback patterns are needed or configured.</p>
+<h2 id="business-workflow-sequence">Business Workflow Sequence</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant User as "User (Browser)"
+    participant Page as "Razor Page / Blazor Component"
+    participant Svc as "JsonFileProductService"
+    participant Store as "products.json"
+
+    Note over User,Store: Browse Product Catalog
+    User->>Page: Navigate to home page
+    Page->>Svc: GetProducts()
+    Svc->>Store: Read and deserialize JSON file
+    Store-->>Svc: Product array
+    Svc-->>Page: IEnumerable of Products
+    Page-->>User: Rendered product cards
+
+    Note over User,Store: View Product Details and Rating
+    User->>Page: Click More Info on a product
+    Page->>Svc: GetProducts() - filter to selected
+    Svc->>Store: Read and deserialize JSON file
+    Store-->>Svc: Product array
+    Svc-->>Page: Selected Product
+    Page->>Page: Compute vote count and average rating
+    alt Product has ratings
+        Page-->>User: Modal with details and average star rating
+    else Product has no ratings
+        Page-->>User: Modal with details and "Be the first to vote!"
+    end
+
+    Note over User,Store: Submit a Star Rating
+    User->>Page: Click star (1-5)
+    Page->>Svc: AddRating(productId, rating)
+    Svc->>Store: Read all products
+    Store-->>Svc: Product array
+    alt Ratings is null
+        Svc->>Store: Initialize Ratings with [rating]
+    else Ratings exist
+        Svc->>Store: Append rating to Ratings array
+    end
+    Store-->>Svc: Write confirmed
+    Svc-->>Page: void
+    Page->>Svc: GetProducts() - refresh display
+    Svc->>Store: Read and deserialize JSON file
+    Store-->>Svc: Updated Product array
+    Page-->>User: Updated average rating displayed
+</div>
+<h2 id="business-rules-decision-logic">Business Rules & Decision Logic</h2>
+<h3 id="validation-rules">Validation Rules</h3>
+<ul>
+<li><strong>Rating null check (API):</strong> <code>ProductsController.Patch()</code> returns HTTP 400 Bad Request if the incoming <code>RatingRequest</code> is null or <code>ProductId</code> is null. No range validation is enforced on the <code>Rating</code> integer at the API layer (any integer value is accepted).</li>
+<li><strong>No server-side rating range validation:</strong> The star rating value (expected 1–5) is only enforced on the client side by limiting UI star controls to values 1–5. The API and service layer accept any integer.</li>
+</ul>
+<h3 id="decision-logic">Decision Logic</h3>
+<ul>
+<li><strong>Ratings initialization:</strong> When <code>AddRating</code> is called and the product's <code>Ratings</code> array is <code>null</code>, it is initialized as a new single-element array <code>[rating]</code>. If it already exists, the rating is appended to the existing array.</li>
+<li><strong>Average rating computation:</strong> Computed in the Blazor component as <code>Sum(Ratings) / Count(Ratings)</code>. Integer division is used, which may cause rounding down. If <code>Ratings</code> is null, <code>currentRating</code> and <code>voteCount</code> are both set to 0.</li>
+<li><strong>Vote label pluralization:</strong> The UI displays "Vote" for exactly 1 vote and "Votes" for 2 or more.</li>
+</ul>
+<h3 id="state-transitions">State Transitions</h3>
+<p>The <code>Product</code> entity has no formal lifecycle states. The only mutable field is <code>Ratings</code>, which transitions:</p>
+<ul>
+<li><code>null</code> (no votes yet) → <code>int[] { rating }</code> (first vote) → <code>int[] { ..., rating }</code> (subsequent votes)</li>
+</ul>
+<p>Ratings are append-only; there is no mechanism to edit, retract, or reset ratings.</p>
+<h3 id="business-constraints">Business Constraints</h3>
+<ul>
+<li><strong>No duplicate vote prevention:</strong> Any user can submit any number of ratings for any product; there is no session tracking, authentication, or per-user vote limit.</li>
+<li><strong>No rating deletion or correction:</strong> Once a rating is written to <code>products.json</code>, it cannot be removed or changed through any exposed API or UI.</li>
+<li><strong>Concurrency risk:</strong> <code>AddRating</code> performs a non-atomic read-modify-write cycle on the JSON file without file locking. Concurrent rating submissions can cause data loss (last write wins, dropping intermediate ratings).</li>
+</ul>
+<h3 id="transactions-error-handling">Transactions & Error Handling</h3>
+<ul>
+<li>No transaction management is in place. The <code>File.OpenWrite</code> call in <code>AddRating</code> does not use atomic replacement — a crash mid-write can corrupt <code>products.json</code>.</li>
+<li>No business exception types are defined. The only error handling is the null check in <code>ProductsController.Patch()</code>.</li>
+<li>No audit logging, change tracking, or event sourcing is implemented.</li>
+</ul>
+<h3 id="authorization">Authorization</h3>
+<p>No authentication or authorization is implemented. All workflows (browse, view details, submit ratings) are accessible to any user without login, session management, or role checks.</p></div>
+</div>
+<div id="tab-deps" class="tab-panel">
+  <div class="fact-content"><h1 id="dependency-map">Dependency Map</h1>
+<p>ContosoCrafts.WebSite is an ASP.NET Core 3.1 web application. It declares no explicit NuGet package references and relies entirely on the <code>Microsoft.NET.Sdk.Web</code> SDK implicit framework reference (ASP.NET Core 3.1), with client-side libraries (Bootstrap, jQuery) bundled in the wwwroot directory.</p>
+<h2 id="dependencies">Dependencies</h2>
+<div class="mermaid">
+flowchart LR
+    App["ContosoCrafts.WebSite"]
+
+    subgraph Web["Web Frameworks"]
+        AspNetCore["ASP.NET Core 3.1 (SDK Web)"]
+        RazorPages["Razor Pages 3.1"]
+        BlazorServer["Blazor Server 3.1"]
+        MvcApi["ASP.NET Core MVC / Web API 3.1"]
+    end
+    subgraph UI["Client-Side UI Libraries"]
+        Bootstrap["Bootstrap v4.3.1"]
+        jQuery["jQuery v3.3.1"]
+        JQueryVal["jQuery Validation"]
+        JQueryValUnob["jQuery Validation Unobtrusive"]
+    end
+    subgraph External["External CDN"]
+        FontAwesome["Font Awesome 4.7.0 (CDN)"]
+    end
+
+    App -->|"framework reference"| Web
+    App -->|"bundled static libs"| UI
+    App -->|"CDN link"| External
+</div>
+<h3 id="dependency-summary">Dependency Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Category</th><th>Count</th><th>Key Libraries</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>Web Frameworks</td><td>4</td><td>ASP.NET Core 3.1, Razor Pages, Blazor Server, Web API</td><td>All provided via <code>Microsoft.NET.Sdk.Web</code> SDK reference; .NET Core 3.1 is end-of-life (EOL Dec 2022)</td></tr>
+<tr><td>Client-Side UI</td><td>4</td><td>Bootstrap 4.3.1, jQuery 3.3.1, jQuery Validation, jQuery Validation Unobtrusive</td><td>Bundled in wwwroot/lib; no package manager (libman.json absent)</td></tr>
+<tr><td>External CDN</td><td>1</td><td>Font Awesome 4.7.0</td><td>Loaded via CDN in ProductList.razor; creates runtime external dependency</td></tr>
+</tbody></table></div>
+<h3 id="version-compatibility-risks">Version & Compatibility Risks</h3>
+<p>The most significant risk is that <strong>ASP.NET Core 3.1 reached end-of-life in December 2022</strong> and no longer receives security updates. The application should be upgraded to at least .NET 8 (LTS) or .NET 10 (current LTS). <strong>Bootstrap 4.3.1</strong> is an older minor version (Bootstrap 5.x is current) and contains known accessibility and utility gaps. <strong>jQuery 3.3.1</strong> is outdated (3.7.x is current); while not EOL, it misses several security and performance patches. <strong>Font Awesome 4.7.0</strong> is significantly outdated (6.x is current) and loaded unconditionally from a CDN, introducing a hard external runtime dependency.</p>
+<h3 id="notable-observations">Notable Observations</h3>
+<ul>
+<li><strong>No explicit NuGet package references</strong>: All server-side functionality comes entirely from the <code>Microsoft.NET.Sdk.Web</code> implicit framework reference, making version control of individual packages opaque. Upgrading means updating the <code><TargetFramework></code> moniker.</li>
+<li><strong>No package manager for client-side assets</strong>: Bootstrap, jQuery, and related libraries are committed directly to <code>wwwroot/lib</code> with no LibMan, npm, or other package manager manifest — this makes updating them error-prone and non-reproducible.</li>
+<li><strong>CDN dependency at runtime</strong>: Font Awesome is referenced from <code>cdnjs.cloudflare.com</code> inside the Blazor component, creating a hard external dependency that will cause icon rendering failures in air-gapped or offline environments.</li>
+<li><strong>Minimal dependency footprint</strong>: There are no ORM, messaging, caching, security library, or observability dependencies — all data access is via <code>System.Text.Json</code> reading a flat JSON file, which limits scalability.</li>
+</ul>
+<h2 id="test-dependencies">Test Dependencies</h2>
+<p>No test-scoped dependencies detected.</p>
+<p>Total test-scope dependencies: 0</p>
+<p>No test project or test framework dependencies were found in the solution. There is no test infrastructure (no xUnit, NUnit, MSTest, or other test framework configured). Adding a test project is recommended before modernization to establish a regression baseline.</p></div>
+</div>
+<div id="tab-data" class="tab-panel">
+  <div class="fact-content"><h1 id="data-architecture-persistence-layer">Data Architecture & Persistence Layer</h1>
+<p>ContosoCrafts.WebSite has a single data entity (<code>Product</code>) persisted as a flat JSON file on the local filesystem; there is no relational database, ORM framework, or migration tooling.</p>
+<h2 id="database-configuration">Database Configuration</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service/Module</th><th>DB Type</th><th>Profile</th><th>Driver</th><th>Connection</th><th>Migration Tool</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td>JSON file (flat file)</td><td>All environments</td><td><code>System.Text.Json</code> (built-in)</td><td><code>wwwroot/data/products.json</code> — path resolved via <code>IWebHostEnvironment.WebRootPath</code></td><td>None — no schema versioning or migration tool configured</td></tr>
+</tbody></table></div>
+<p>Schema management is entirely manual: the JSON file is the authoritative data store and is committed directly to source control. There is no DDL, no migration history, and no seed script — the file itself serves as both the schema definition and the initial seed data (15 product records pre-populated).</p>
+<h2 id="data-ownership-per-service">Data Ownership per Service</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Tables / Files Owned</th><th>ORM Framework</th><th>Caching</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td><code>wwwroot/data/products.json</code></td><td>None (direct <code>System.IO.File</code> + <code>System.Text.Json</code>)</td><td>None</td><td>Single flat file; entire file is read and rewritten on every write operation (no partial update)</td></tr>
+</tbody></table></div>
+<h2 id="entity-model">Entity Model</h2>
+<div class="mermaid">
+erDiagram
+    Product {
+        string Id PK
+        string Maker
+        string Image   "JSON property name: img"
+        string Url
+        string Title
+        string Description
+        int[]  Ratings  "nullable; array of 1-5 integer votes"
+    }
+</div>
+<p>The <code>Product</code> entity is defined in <code>src/Models/Product.cs</code>. There is only one entity — no relationships, foreign keys, or join tables exist.</p>
+<h2 id="key-repository-methods">Key Repository Methods</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Repository / Service</th><th>Notable Methods</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>ContosoCrafts.WebSite</td><td><code>JsonFileProductService</code> (<code>src/Services/JsonFileProductService.cs</code>)</td><td><code>GetProducts()</code></td><td>Reads and deserializes the entire <code>products.json</code> file; returns <code>IEnumerable<Product></code></td></tr>
+<tr><td>ContosoCrafts.WebSite</td><td><code>JsonFileProductService</code></td><td><code>AddRating(string productId, int rating)</code></td><td>Reads all products, appends the new rating integer to the target product's <code>Ratings</code> array, then rewrites the entire JSON file</td></tr>
+</tbody></table></div>
+<p>There are no standard CRUD interfaces (no <code>IRepository</code>, no <code>DbContext</code>), no custom query methods with filters or projections, and no batch/bulk operations. There is no transaction management — concurrent write operations to <code>products.json</code> can cause data loss or corruption due to non-atomic read-modify-write cycles using <code>File.OpenWrite</code>.</p>
+<h2 id="caching-strategy">Caching Strategy</h2>
+<p>No caching layer is configured. Every call to <code>GetProducts()</code> performs a synchronous file system read and full JSON deserialization. There is no in-memory cache, distributed cache (Redis, MemoryCache, <code>IDistributedCache</code>), second-level cache, or query result cache.</p>
+<p>This means the Blazor <code>ProductList</code> component calls <code>GetProducts()</code> on every render and re-selection, resulting in repeated file I/O with no performance optimization.</p>
+<h2 id="data-ownership-boundaries">Data Ownership Boundaries</h2>
+<p>The application is a single-service monolith with a single shared data file. There are no isolated data stores, no schema-per-service, no bounded contexts, and no inter-service data access patterns. The file <code>wwwroot/data/products.json</code> is the sole data store, directly owned and accessed by <code>JsonFileProductService</code>.</p>
+<p>The read/write pattern is strictly synchronous and non-atomic: <code>GetProducts()</code> performs a full-file read on every invocation, and <code>AddRating()</code> performs a read-modify-write cycle without any file locking, making the implementation unsafe under concurrent requests.</p>
+<h3 id="data-classification-sensitivity">Data Classification & Sensitivity</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Entity</th><th>Fields</th><th>Classification</th><th>Controls in Place</th>
+</tr></thead><tbody>
+<tr><td>Product</td><td>Id, Maker, Image (URL), Url, Title, Description, Ratings</td><td>None (no PII, PHI, or PCI)</td><td>N/A</td></tr>
+</tbody></table></div>
+<p>No personally identifiable information (PII), protected health information (PHI), or payment card data (PCI) is stored. The <code>Maker</code> field contains GitHub usernames/handles (publicly available information, not sensitive PII). No encryption-at-rest, masking, or field-level access control is required or configured.</p></div>
+</div>
+<p class="footer">Your feedback is invaluable &mdash; <a href="https://aka.ms/ghcp-appmod/feedback">Share feedback</a></p>
+<script>
+function toggleRow(rowId, triggerRow) {
+  var detail = document.getElementById(rowId);
+  var btn = document.getElementById('btn-' + rowId);
+  if (!detail) return;
+  var visible = detail.style.display !== 'none';
+  detail.style.display = visible ? 'none' : 'table-row';
+  if (btn) btn.classList.toggle('open', !visible);
+}
+(function() {
+  var nav = document.querySelector('.tab-nav');
+  if (!nav) return;
+  nav.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    var targetId = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    var panel = document.getElementById(targetId);
+    if (panel) {
+      panel.classList.add('active');
+      if (window.__mermaidReady) { window.__renderMermaidIn(panel); }
+    }
+  });
+})();
+
+// ── Diagram lightbox ────────────────────────────────────────
+(function() {
+  var lightbox = document.getElementById('diagram-lightbox');
+  var inner = document.getElementById('diagram-lightbox-inner');
+  var closeBtn = document.getElementById('diagram-lightbox-close');
+  if (!lightbox || !inner || !closeBtn) return;
+
+  var scale = 1;
+  var translateX = 0;
+  var translateY = 0;
+  var isDragging = false;
+  var dragStartX = 0;
+  var dragStartY = 0;
+
+  function applyTransform() {
+    var svg = inner.querySelector('svg');
+    if (svg) {
+      svg.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + scale + ')';
+      svg.style.transformOrigin = 'center center';
+      svg.style.transition = 'none';
+    }
+  }
+
+  function resetTransform() {
+    scale = 1; translateX = 0; translateY = 0;
+    applyTransform();
+  }
+
+  function openLightbox(svgEl) {
+    inner.innerHTML = svgEl.outerHTML;
+    var injected = inner.querySelector('svg');
+    if (injected) {
+      injected.removeAttribute('width');
+      injected.removeAttribute('height');
+      injected.style.cursor = 'grab';
+    }
+    resetTransform();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    inner.innerHTML = '';
+    document.body.style.overflow = '';
+    resetTransform();
+  }
+
+  inner.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? 0.9 : 1.1;
+    scale = Math.min(Math.max(scale * delta, 0.3), 8);
+    applyTransform();
+  }, { passive: false });
+
+  inner.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStartX = e.clientX - translateX;
+    dragStartY = e.clientY - translateY;
+    var svg = inner.querySelector('svg');
+    if (svg) { svg.style.cursor = 'grabbing'; }
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    translateX = e.clientX - dragStartX;
+    translateY = e.clientY - dragStartY;
+    applyTransform();
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (!isDragging) return;
+    isDragging = false;
+    var svg = inner.querySelector('svg');
+    if (svg) { svg.style.cursor = 'grab'; }
+  });
+
+  inner.addEventListener('dblclick', function() { resetTransform(); });
+
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.mermaid');
+    if (!card) return;
+    if (e.target.closest('.diagram-lightbox-close')) return;
+    var svg = card.querySelector('svg');
+    if (svg) { openLightbox(svg); }
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === lightbox) { closeLightbox(); }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeLightbox(); }
+  });
+})();
+
+var _currentTarget = '';
+
+function toggleMultiSelect(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  document.querySelectorAll('.multi-select.open').forEach(function(ms) { if (ms.id !== id) ms.classList.remove('open'); });
+  el.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.multi-select')) {
+    document.querySelectorAll('.multi-select.open').forEach(function(ms) { ms.classList.remove('open'); });
+  }
+});
+
+function getMultiSelectValues(msId) {
+  var el = document.getElementById(msId);
+  if (!el) return [];
+  var checked = el.querySelectorAll('input[type=checkbox]:checked');
+  var vals = [];
+  for (var i = 0; i < checked.length; i++) vals.push(checked[i].value);
+  return vals;
+}
+
+function onMultiSelectChange(msId, label) {
+  var el = document.getElementById(msId);
+  if (!el) return;
+  var vals = getMultiSelectValues(msId);
+  var total = el.querySelectorAll('input[type=checkbox]').length;
+  var btn = el.querySelector('.multi-select-btn');
+  if (btn) {
+    btn.textContent = vals.length > 0 && vals.length < total ? label + ' (' + vals.length + ')' : label;
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  var selectedDomains = getMultiSelectValues('domain-ms');
+  var selectedCrits = getMultiSelectValues('criticality-ms');
+
+  var sections = document.querySelectorAll('.issue-section');
+  for (var i = 0; i < sections.length; i++) {
+    var domain = sections[i].getAttribute('data-domain');
+    sections[i].style.display = (selectedDomains.length === 0 || selectedDomains.indexOf(domain) >= 0) ? '' : 'none';
+  }
+
+  var rows = document.querySelectorAll('.issue-row');
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var section = row.closest('.issue-section');
+    if (section && section.style.display === 'none') {
+      row.style.display = 'none';
+      var next = row.nextElementSibling;
+      if (next && next.classList.contains('detail-row')) next.style.display = 'none';
+      continue;
+    }
+
+    var show = true;
+    if (_currentTarget && row.hasAttribute('data-targets')) {
+      var targetsStr = row.getAttribute('data-targets');
+      if (targetsStr && targetsStr !== '{}') {
+        try {
+          var targets = JSON.parse(targetsStr);
+          if (Object.keys(targets).length > 0 && !targets[_currentTarget]) {
+            show = false;
+          }
+        } catch(e) {}
+      }
+    }
+
+    if (show && selectedCrits.length > 0) {
+      var crit = row.getAttribute('data-criticality');
+      if (selectedCrits.indexOf(crit) < 0) show = false;
+    }
+
+    row.style.display = show ? '' : 'none';
+    var nextRow = row.nextElementSibling;
+    if (nextRow && nextRow.classList.contains('detail-row')) {
+      if (!show) nextRow.style.display = 'none';
+    }
+  }
+}
+
+function clearAllFilters() {
+  document.querySelectorAll('.multi-select input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+  var domainBtn = document.querySelector('#domain-ms .multi-select-btn');
+  if (domainBtn) domainBtn.textContent = 'Domain';
+  var critBtn = document.querySelector('#criticality-ms .multi-select-btn');
+  if (critBtn) critBtn.textContent = 'Criticality';
+  applyFilters();
+}
+
+function onTargetChange(targetId) {
+  _currentTarget = targetId;
+  var rows = document.querySelectorAll('.issue-row[data-targets]');
+  var totalEffort = 0;
+  var domainCrits = {};
+
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var targets = JSON.parse(row.getAttribute('data-targets'));
+    var section = row.closest('.issue-section');
+    var domain = section ? section.getAttribute('data-domain') : '';
+
+    if (!targets || Object.keys(targets).length === 0) {
+      var sp = parseFloat(row.querySelector('.sp-cell').textContent) || 0;
+      totalEffort += sp;
+      if (!domainCrits[domain]) domainCrits[domain] = {mandatory:0,potential:0,optional:0};
+      var crit = row.getAttribute('data-criticality') || 'optional';
+      domainCrits[domain][crit] = (domainCrits[domain][crit] || 0) + 1;
+      continue;
+    }
+
+    var override = targets[targetId];
+    if (!override) {
+      continue;
+    }
+
+    var newSeverity = (override.severity || row.getAttribute('data-default-severity') || '').toLowerCase();
+    row.setAttribute('data-criticality', newSeverity);
+    var critCell = row.querySelector('.crit-cell');
+    if (critCell) {
+      var critText = newSeverity === 'mandatory' ? 'Mandatory' : newSeverity === 'potential' ? 'Potential' : 'Optional';
+      var cssClass = newSeverity === 'mandatory' ? 'crit-square-mandatory' : newSeverity === 'potential' ? 'crit-square-potential' : 'crit-square-optional';
+      critCell.innerHTML = '<span class="crit-label"><span class="crit-square ' + cssClass + '"></span>' + critText + '</span>';
+    }
+
+    var newEffort = override.effort !== undefined ? override.effort : parseFloat(row.getAttribute('data-default-effort')) || 0;
+    var spCell = row.querySelector('.sp-cell');
+    if (spCell) spCell.textContent = newEffort;
+    totalEffort += newEffort;
+
+    if (!domainCrits[domain]) domainCrits[domain] = {mandatory:0,potential:0,optional:0};
+    domainCrits[domain][newSeverity] = (domainCrits[domain][newSeverity] || 0) + 1;
+  }
+
+  var secSection = document.querySelector('.issue-section[data-domain="security"]');
+  if (secSection) {
+    var secRows = secSection.querySelectorAll('.issue-row');
+    for (var j = 0; j < secRows.length; j++) {
+      if (!secRows[j].hasAttribute('data-targets') || secRows[j].getAttribute('data-targets') === '') {
+        var sp = parseFloat(secRows[j].querySelector('.sp-cell').textContent) || 0;
+        totalEffort += sp;
+        if (!domainCrits['security']) domainCrits['security'] = {mandatory:0,potential:0,optional:0};
+        var sc = secRows[j].getAttribute('data-criticality') || 'optional';
+        domainCrits['security'][sc] = (domainCrits['security'][sc] || 0) + 1;
+      }
+    }
+  }
+
+  var label = totalEffort < 20 ? 'S' : totalEffort < 50 ? 'M' : totalEffort < 100 ? 'L' : 'XL';
+  var effortEl = document.getElementById('effort-display');
+  if (effortEl) effortEl.textContent = label + ' (total story points: ' + totalEffort + ')';
+
+  updateDonuts(domainCrits);
+  applyFilters();
+}
+
+function updateDonuts(domainCrits) {
+  var container = document.getElementById('donut-container');
+  if (!container) return;
+  container.innerHTML = '';
+  var domainNames = {'cloud-readiness':'Cloud Readiness','java-upgrade':'Java Upgrade','dotnet-upgrade':'DotNET Upgrade','security':'Security'};
+  var domainOrder = ['cloud-readiness','java-upgrade','dotnet-upgrade','security'];
+  for (var d = 0; d < domainOrder.length; d++) {
+    var key = domainOrder[d];
+    var c = domainCrits[key];
+    if (!c || (c.mandatory + c.potential + c.optional) === 0) continue;
+    var total = c.mandatory + c.potential + c.optional;
+    var div = document.createElement('div');
+    div.className = 'domain-summary-item';
+    div.innerHTML = buildDonutSvg(c.mandatory, c.potential, c.optional) +
+      '<h3>' + domainNames[key] + '</h3>' +
+      '<div class="count">' + total + ' issue' + (total !== 1 ? 's' : '') + '</div>';
+    container.appendChild(div);
+  }
+}
+
+function buildDonutSvg(m, p, o) {
+  var total = m + p + o;
+  if (total === 0) return '<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;"><circle cx="50" cy="50" r="35" fill="none" stroke="#d0d7de" stroke-width="15" opacity="0.5"/></svg>';
+  var r = 35, circ = 2 * Math.PI * r, offset = 0;
+  var svg = '<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">';
+  var segs = [{c:m,color:'var(--color-mandatory)'},{c:p,color:'var(--color-potential)'},{c:o,color:'var(--color-optional)'}];
+  for (var i = 0; i < segs.length; i++) {
+    if (segs[i].c === 0) continue;
+    var segLen = (segs[i].c / total) * circ;
+    var gap = total > segs[i].c ? 1.5 : 0;
+    var drawLen = Math.max(segLen - gap, 0.5);
+    svg += '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + segs[i].color + '" stroke-width="15" stroke-dasharray="' + drawLen.toFixed(2) + ' ' + circ.toFixed(2) + '" stroke-dashoffset="' + (-offset).toFixed(2) + '"/>';
+    offset += segLen;
+  }
+  svg += '</svg>';
+  return svg;
+}
+</script>
+<script>document.addEventListener('DOMContentLoaded', function() { onTargetChange('AppService.Windows'); });</script>
+</div></body></html>
